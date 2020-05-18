@@ -4,11 +4,18 @@ module.exports = {
   index(req, res, next) {
     const { lng, lat } = req.query;
 
-    Driver.geoNear(
-      { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] },
-      { spherical: true, maxDistance: 200000 }
-    )
-      .then(drivers => res.send(drivers))
+    Driver.find({
+      geometry: {
+        $nearSphere: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [parseFloat(lng), parseFloat(lat)],
+          },
+          $maxDistance: 200000,
+        },
+      },
+    })
+      .then((drivers) => res.send(drivers))
       .catch(next);
   },
 
@@ -16,8 +23,8 @@ module.exports = {
     const driverProps = req.body;
 
     Driver.create(driverProps)
-      .then(driver => res.send(driver))
-      .catch(next)
+      .then((driver) => res.send(driver))
+      .catch(next);
   },
 
   edit(req, res, next) {
@@ -26,7 +33,7 @@ module.exports = {
 
     Driver.findByIdAndUpdate({ _id: driverId }, driverProps)
       .then(() => Driver.findById({ _id: id }))
-      .then(driver => res.send(driver))
+      .then((driver) => res.send(driver))
       .catch(next);
   },
 
@@ -34,7 +41,7 @@ module.exports = {
     const driverId = req.params.id;
 
     Driver.findByIdAndRemove({ _id: driverId })
-      .then(driver => res.status(204).send(driver))
+      .then((driver) => res.status(204).send(driver))
       .catch(next);
-  }
+  },
 };
